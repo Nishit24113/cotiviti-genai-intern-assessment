@@ -1,9 +1,31 @@
 import streamlit as st
-from agent import analyze_claim, analyze_custom_claim
+import os
 from rules_engine import run_rules_engine
 from anomaly_detector import get_anomaly_score
-from knowledge_base import retrieve_relevant_guidelines
 from sample_claims import SAMPLE_CLAIMS
+from demo_cache import CACHED_RESULTS
+
+
+def is_demo_mode():
+    """Check if AWS credentials are available. If not, run in demo mode."""
+    try:
+        import boto3
+        session = boto3.Session(
+            profile_name=os.getenv("AWS_PROFILE", "sandbox2025"),
+            region_name=os.getenv("AWS_REGION", "us-east-1"),
+        )
+        sts = session.client("sts")
+        sts.get_caller_identity()
+        return False
+    except Exception:
+        return True
+
+
+DEMO_MODE = is_demo_mode()
+
+if not DEMO_MODE:
+    from agent import analyze_claim, analyze_custom_claim
+    from knowledge_base import retrieve_relevant_guidelines
 
 st.set_page_config(
     page_title="Clinical Claims Decision Agent",
@@ -184,7 +206,11 @@ def _generate_narrative(rules_result, anomaly_result, llm_result):
 # ============================================================
 
 with st.sidebar:
-    st.image("https://img.shields.io/badge/AI-Powered-purple?style=for-the-badge", use_container_width=True)
+    if DEMO_MODE:
+        st.info("**Demo Mode** — Using cached results (no AWS credentials detected)")
+    else:
+        st.success("**Live Mode** — Connected to AWS Bedrock")
+    st.markdown("---")
     st.header("Architecture")
     st.markdown(
         """
@@ -268,17 +294,37 @@ with tab1:
     if st.button("Analyze Claim", type="primary", key="sample", use_container_width=True):
         progress = st.progress(0, text="Initializing four-layer analysis pipeline...")
 
-        progress.progress(10, text="Layer 1: Executing rules engine...")
-        rules_result = run_rules_engine(selected_claim)
+        claim_id = selected_claim["id"]
 
-        progress.progress(30, text="Layer 2: Retrieving clinical guidelines via RAG...")
-        guidelines = retrieve_relevant_guidelines(selected_claim)
+        if DEMO_MODE and claim_id in CACHED_RESULTS:
+            import time
+            progress.progress(10, text="Layer 1: Executing rules engine...")
+            time.sleep(0.3)
+            rules_result = CACHED_RESULTS[claim_id]["rules"]
 
-        progress.progress(50, text="Layer 3: Running anomaly detection model...")
-        anomaly_result = get_anomaly_score(selected_claim)
+            progress.progress(30, text="Layer 2: Retrieving clinical guidelines via RAG...")
+            time.sleep(0.3)
+            guidelines = CACHED_RESULTS[claim_id]["guidelines"]
 
-        progress.progress(65, text="Layer 4: Agentic GenAI performing chain reasoning...")
-        llm_result = analyze_claim(selected_claim, guidelines=guidelines)
+            progress.progress(50, text="Layer 3: Running anomaly detection model...")
+            time.sleep(0.3)
+            anomaly_result = CACHED_RESULTS[claim_id]["anomaly"]
+
+            progress.progress(65, text="Layer 4: Agentic GenAI performing chain reasoning...")
+            time.sleep(0.5)
+            llm_result = CACHED_RESULTS[claim_id]["llm"]
+        else:
+            progress.progress(10, text="Layer 1: Executing rules engine...")
+            rules_result = run_rules_engine(selected_claim)
+
+            progress.progress(30, text="Layer 2: Retrieving clinical guidelines via RAG...")
+            guidelines = retrieve_relevant_guidelines(selected_claim)
+
+            progress.progress(50, text="Layer 3: Running anomaly detection model...")
+            anomaly_result = get_anomaly_score(selected_claim)
+
+            progress.progress(65, text="Layer 4: Agentic GenAI performing chain reasoning...")
+            llm_result = analyze_claim(selected_claim, guidelines=guidelines)
 
         progress.progress(100, text="Analysis complete!")
 
@@ -286,7 +332,11 @@ with tab1:
 
 with tab2:
     st.subheader("Enter a Custom Clinical Scenario")
-    st.markdown("Describe a clinical claim scenario in natural language for AI analysis:")
+
+    if DEMO_MODE:
+        st.warning("Custom scenario analysis requires AWS Bedrock credentials. Run locally with configured AWS profile to use this feature.")
+    else:
+        st.markdown("Describe a clinical claim scenario in natural language for AI analysis:")
 
     custom_input = st.text_area(
         "Describe the claim:",
@@ -296,7 +346,7 @@ with tab2:
         height=150,
     )
 
-    if st.button("Analyze Scenario", type="primary", key="custom", use_container_width=True):
+    if st.button("Analyze Scenario", type="primary", key="custom", use_container_width=True, disabled=DEMO_MODE):
         if custom_input.strip():
             with st.spinner("Agentic AI performing chain-of-thought analysis..."):
                 llm_result = analyze_custom_claim(custom_input)
