@@ -6,18 +6,28 @@
 
 ---
 
+## Live Demo
+
+[View Live Application](https://cotiviti-genai-intern-assessment.streamlit.app/) (Demo mode — no credentials required)
+
+---
+
 ## Repository Structure
 
 ```
+├── .streamlit/                 # Streamlit Cloud configuration
+│   └── config.toml             # Theme and server settings
 ├── poc/                        # Hackathon Proof of Concept
 │   ├── app.py                  # Streamlit dashboard (main entry)
 │   ├── agent.py                # AWS Bedrock LLM + RAG-augmented reasoning
 │   ├── knowledge_base.py       # Vector embeddings + RAG retrieval
 │   ├── rules_engine.py         # Deterministic business rules
 │   ├── anomaly_detector.py     # Isolation Forest ML model
+│   ├── batch_processor.py      # Batch analysis + statistics
+│   ├── demo_cache.py           # Cached results for credential-free demo
 │   ├── sample_claims.py        # Sample clinical claims data
 │   ├── requirements.txt        # Python dependencies
-│   └── README.md               # POC architecture + setup
+│   └── README.md               # Architecture documentation
 ├── report/                     # Written Report
 │   └── Cotiviti_Assessment_Report_Nishit_Patel.docx
 ├── presentation/               # PowerPoint Presentation
@@ -28,14 +38,27 @@
 
 ## Proof of Concept: Clinical Claims Decision Agent
 
-A four-layer **agentic AI pipeline** for healthcare payment integrity that demonstrates:
+An **agentic AI system** demonstrating autonomous reasoning, goal-directed behavior, and multi-step decision-making for healthcare payment integrity.
 
-1. **Rules Engine** — Deterministic business rules for known billing patterns
-2. **RAG Knowledge Retrieval** — Vector embeddings (AWS Titan) + cosine similarity for clinical guidelines
-3. **Anomaly Detection** — Isolation Forest (unsupervised ML) for statistical outlier detection
-4. **Agentic GenAI Reasoning** — Claude LLM chain-of-thought with RAG-augmented context
+### Architecture: Four-Layer Pipeline
 
-### Quick Start
+| Layer | Technology | Function |
+|-------|-----------|----------|
+| 1. Rules Engine | Custom Python | Deterministic CPT-ICD validation, cost thresholds |
+| 2. RAG Retrieval | AWS Titan Embeddings | Vector similarity search over clinical guidelines |
+| 3. Anomaly Detection | scikit-learn (Isolation Forest) | Unsupervised statistical outlier detection |
+| 4. Agentic GenAI | AWS Bedrock (Claude) | Chain-of-thought reasoning with RAG context |
+
+### Key Features
+
+- **Autonomous Decision-Making** — Agent performs 5-step clinical reasoning independently
+- **RAG-Grounded Reasoning** — Decisions reference actual clinical coding guidelines
+- **Explainable AI** — Complete audit trail and reasoning chain for every decision
+- **Batch Processing** — Analyze multiple claims with aggregate statistics and Plotly visualizations
+- **Export Functionality** — CSV export for downstream analysis
+- **Demo Mode** — Runs without credentials using cached results for public access
+
+### Quick Start (Local with AWS)
 
 ```bash
 cd poc
@@ -46,7 +69,18 @@ streamlit run app.py
 
 ### Technologies
 
-Python | AWS Bedrock (Claude + Titan Embeddings) | scikit-learn | Streamlit | boto3
+Python | AWS Bedrock (Claude + Titan Embeddings) | scikit-learn | Streamlit | Plotly | Pandas
+
+---
+
+## Deliverables
+
+| # | Deliverable | Description |
+|---|-------------|-------------|
+| 1 | Written Report | 2-page analysis + bibliography (APA format) |
+| 2 | POC Demo | Working agentic AI pipeline with Streamlit UI |
+| 3 | Presentation | 11-slide PowerPoint with architecture overview |
+| 4 | Video | Recorded presentation + live demo walkthrough |
 
 ---
 
