@@ -267,7 +267,7 @@ with col4:
 st.markdown("---")
 
 # --- Main Content ---
-tab1, tab2, tab3 = st.tabs(["📋 Claim Analysis", "✏️ Custom Scenario", "ℹ️ About"])
+tab1, tab2, tab3, tab4 = st.tabs(["📋 Claim Analysis", "📊 Batch Analysis", "✏️ Custom Scenario", "ℹ️ About"])
 
 with tab1:
     st.subheader("Select a Clinical Claim for Analysis")
@@ -331,6 +331,77 @@ with tab1:
         display_pipeline_results(rules_result, anomaly_result, llm_result, guidelines=guidelines)
 
 with tab2:
+    st.subheader("Batch Claims Analysis")
+    st.markdown("Analyze all sample claims simultaneously and view aggregate statistics.")
+
+    from batch_processor import process_batch, get_batch_summary
+    import plotly.express as px
+    import plotly.graph_objects as go
+
+    if st.button("Run Batch Analysis", type="primary", key="batch", use_container_width=True):
+        with st.spinner("Processing all claims through rules + anomaly detection..."):
+            df = process_batch(SAMPLE_CLAIMS)
+            summary = get_batch_summary(df)
+
+        # Summary metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Claims", summary["total_claims"])
+        with col2:
+            st.metric("Flagged", summary["flagged_claims"],
+                      delta=f"{summary['flag_rate']:.0%} rate", delta_color="inverse")
+        with col3:
+            st.metric("Outliers", summary["outlier_claims"],
+                      delta=f"{summary['outlier_rate']:.0%} rate", delta_color="inverse")
+        with col4:
+            st.metric("Avg Risk", f"{summary['avg_risk_score']:.0%}")
+
+        st.markdown("---")
+
+        # Visualizations
+        col1, col2 = st.columns(2)
+
+        with col1:
+            fig = px.bar(
+                df, x="Claim ID", y="Rules Risk",
+                color="Rules Risk",
+                color_continuous_scale=["green", "yellow", "red"],
+                title="Risk Score by Claim",
+            )
+            fig.update_layout(height=350)
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            fig = px.scatter(
+                df, x="Billed Amount", y="Anomaly Score",
+                color="Is Outlier",
+                size="Procedures",
+                hover_data=["Claim ID", "Diagnosis"],
+                title="Anomaly Score vs. Billed Amount",
+                color_discrete_map={True: "red", False: "green"},
+            )
+            fig.update_layout(height=350)
+            st.plotly_chart(fig, use_container_width=True)
+
+        # Results table
+        st.markdown("### Detailed Results")
+        styled_df = df.style.background_gradient(
+            subset=["Rules Risk", "Anomaly Score"],
+            cmap="RdYlGn_r",
+        )
+        st.dataframe(styled_df, use_container_width=True, hide_index=True)
+
+        # Export
+        csv = df.to_csv(index=False)
+        st.download_button(
+            label="Download Results as CSV",
+            data=csv,
+            file_name="claims_analysis_results.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+
+with tab3:
     st.subheader("Enter a Custom Clinical Scenario")
 
     if DEMO_MODE:
@@ -373,7 +444,7 @@ with tab2:
         else:
             st.warning("Please enter a clinical scenario to analyze.")
 
-with tab3:
+with tab4:
     st.subheader("About This System")
     st.markdown("""
     ### Clinical Claims Decision Agent
