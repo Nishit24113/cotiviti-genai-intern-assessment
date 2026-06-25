@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+dist/
+build/
+.streamlit/
+.venv/
+venv/
+env/
+Intern_Assessment_Directions.pdf
+report/report_content.md
+video/RECORDING_GUIDE.md
+report/generate_report.py
+presentation/generate_pptx.py
