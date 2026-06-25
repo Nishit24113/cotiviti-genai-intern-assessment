@@ -253,16 +253,17 @@ st.markdown(
 )
 
 # --- Dashboard Metrics ---
-st.markdown("### System Overview")
+st.markdown("### Pipeline Components")
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    st.metric("Knowledge Base", "10 Guidelines", delta="Vector indexed")
+    st.metric("Knowledge Base", "10 Guidelines", delta="Titan Embeddings")
 with col2:
-    st.metric("ML Model", "Isolation Forest", delta="20 training samples")
+    st.metric("Anomaly Model", "Isolation Forest", delta="Unsupervised ML")
 with col3:
-    st.metric("Rules Engine", "5 Rule Types", delta="Active")
+    st.metric("Rules Engine", "5 Rule Types", delta="CPT-ICD Checks")
 with col4:
-    st.metric("LLM Agent", "Claude (Bedrock)", delta="5-step reasoning")
+    mode_label = "Demo Mode" if DEMO_MODE else "Live (Bedrock)"
+    st.metric("LLM Agent", "Claude", delta=mode_label)
 
 st.markdown("---")
 
