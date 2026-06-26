@@ -10,6 +10,10 @@
 
 [View Live Application](https://cotiviti-genai-intern-assessment-beutz4gqy6yrxlw4mvhxkq.streamlit.app/) (Demo mode — no credentials required)
 
+## Video Presentation
+
+[Watch Video Recording](https://asu.zoom.us/rec/share/8sxxP7sB7rIshz8uOI5BRDG4k5eqDHSkXB5elLkNlanaVsBaoRYrIrdTXJqtu5eE.JD2lkFE_IJuoJGIw) (Passcode: ****) | Also available as MP4 in `video/` folder
+
 ---
 
 ## Repository Structure
@@ -33,6 +37,7 @@
 ├── presentation/               # PowerPoint Presentation
 │   └── Cotiviti_Assessment_Presentation_Nishit_Patel.pptx
 ├── video/                      # Video Recording (MP4)
+│   └── Cotiviti_Assessment_Video_Nishit_Patel.mp4
 └── README.md                   # This file
 ```
 

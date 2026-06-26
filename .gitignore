@@ -10,5 +10,6 @@ env/
 Intern_Assessment_Directions.pdf
 report/report_content.md
 video/RECORDING_GUIDE.md
+video/video_script.txt
 report/generate_report.py
 presentation/generate_pptx.py
