@@ -8,7 +8,7 @@
 
 ## Live Demo
 
-[View Live Application](https://cotiviti-genai-intern-assessment.streamlit.app/) (Demo mode — no credentials required)
+[View Live Application](https://cotiviti-genai-intern-assessment-beutz4gqy6yrxlw4mvhxkq.streamlit.app/) (Demo mode — no credentials required)
 
 ---
 
