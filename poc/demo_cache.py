@@ -190,6 +190,182 @@ CACHED_RESULTS = {
             "recommendation": "Request clinical documentation supporting the chest X-ray. If no signs of lower respiratory involvement are documented, deny CPT 71046 and approve 99213 only.",
         },
     },
+    "CLM-2024-003": {
+        "rules": {
+            "flags": [],
+            "risk_score": 0.0,
+            "pre_decision": "LOW_RISK",
+            "procedures_checked": ["72148", "99215"],
+            "diagnosis_prefix": "M54",
+        },
+        "guidelines": [
+            {
+                "guideline_id": "CG-001",
+                "category": "Imaging - Lumbar Spine",
+                "guideline": "MRI of the lumbar spine is not recommended as initial imaging for acute low back pain in patients under 50 without red flags (fever, weight loss, trauma, neurological deficits). Conservative treatment of 4-6 weeks should be attempted first. Red flags warranting immediate imaging include: cauda equina syndrome, progressive neurological deficit, suspected spinal infection, or history of cancer with new back pain.",
+                "source": "American College of Radiology Appropriateness Criteria",
+                "relevance_score": 0.82,
+            },
+            {
+                "guideline_id": "CG-003",
+                "category": "E&M Coding - Visit Complexity",
+                "guideline": "CPT 99215 (high complexity office visit) requires at least one of: high-complexity medical decision-making, or 40+ minutes of total time on the date of encounter.",
+                "source": "AMA CPT Guidelines / CMS E&M Documentation Standards",
+                "relevance_score": 0.56,
+            },
+            {
+                "guideline_id": "CG-009",
+                "category": "Medical Necessity - General",
+                "guideline": "Medical necessity requires that services be: (1) appropriate for the symptoms and diagnosis, (2) not more costly than alternative services that are equally effective, (3) not experimental or investigational, and (4) furnished at the most appropriate level of service.",
+                "source": "CMS Medicare Benefit Policy Manual, Chapter 16",
+                "relevance_score": 0.41,
+            },
+        ],
+        "anomaly": {
+            "anomaly_score": 0.72,
+            "is_anomaly": True,
+            "raw_isolation_score": -0.142,
+            "feature_contributions": [
+                {"feature": "Billed Amount", "value": 3200.0, "mean": 370.0, "deviation": 0.893, "direction": "above"},
+                {"feature": "Age", "value": 58, "mean": 48.4, "deviation": 0.212, "direction": "above"},
+                {"feature": "Procedure Count", "value": 2, "mean": 1.6, "deviation": 0.083, "direction": "above"},
+                {"feature": "Emergency Visit", "value": 0, "mean": 0.2, "deviation": 0.158, "direction": "below"},
+                {"feature": "Diagnosis Complexity", "value": 2, "mean": 1.6, "deviation": 0.072, "direction": "above"},
+            ],
+            "interpretation": {
+                "level": "Moderate Outlier",
+                "description": "This claim deviates from typical billing patterns. Primary driver: Billed Amount significantly above average for this visit type.",
+            },
+        },
+        "llm": {
+            "steps": [
+                {
+                    "step_number": 1,
+                    "title": "Clinical Context Analysis",
+                    "reasoning": "A 58-year-old male presenting with low back pain (M54.5) to an Orthopedic specialist. This is a first visit with immediate MRI ordered. While the patient is over 50, the description indicates this is an initial presentation without prior conservative treatment.",
+                    "findings": "First visit for back pain. Patient age (58) places them above the typical <50 threshold for imaging restriction, but immediate MRI on first visit remains aggressive without documented red flags.",
+                },
+                {
+                    "step_number": 2,
+                    "title": "Procedure-Diagnosis Alignment",
+                    "reasoning": "CPT 72148 (MRI Lumbar Spine) is a valid procedure for M54.5 (Low Back Pain), and 99215 (high complexity visit) can be appropriate for orthopedic evaluation with imaging review. The CPT-ICD combination is technically valid.",
+                    "findings": "Procedure codes are within acceptable range for the diagnosis. No hard mismatch detected.",
+                },
+                {
+                    "step_number": 3,
+                    "title": "Billing Pattern Analysis",
+                    "reasoning": "Total billed amount of $3,200 includes MRI ($2,000+) and high-complexity visit ($500). While individually these are within range, the combination on a first visit without documented trial of conservative therapy raises utilization concerns. ACR guidelines recommend 4-6 weeks conservative treatment before imaging.",
+                    "findings": "Billing amount is high but technically within range for the procedures billed. The concern is medical necessity rather than coding accuracy.",
+                },
+                {
+                    "step_number": 4,
+                    "title": "Medical Necessity Assessment",
+                    "reasoning": "Per ACR Appropriateness Criteria, MRI for low back pain without red flags should follow failed conservative treatment. The patient is 58 (over 50 threshold), which lowers the bar slightly. However, 99215 (high complexity) for a first back pain visit may be overcoded unless significant comorbidities or complexity is documented.",
+                    "findings": "MRI may be premature without documented failure of conservative treatment. 99215 level requires supporting documentation of high-complexity decision-making.",
+                },
+                {
+                    "step_number": 5,
+                    "title": "Final Decision",
+                    "reasoning": "While no hard rule violations exist, the pattern of immediate advanced imaging on first visit combined with highest-level E&M coding warrants clinical review. Request documentation of: (1) red flags justifying immediate MRI, (2) medical decision-making complexity supporting 99215 level.",
+                    "findings": "Flag for review to verify medical necessity documentation supports immediate MRI and high-complexity coding level.",
+                },
+            ],
+            "decision": "FLAG_FOR_REVIEW",
+            "confidence_score": 0.82,
+            "risk_factors": [
+                "MRI ordered on first visit without documented conservative treatment trial",
+                "High-complexity E&M code (99215) on initial presentation requires supporting documentation",
+                "Billed amount in top percentile for initial back pain evaluation",
+            ],
+            "recommendation": "Request documentation supporting immediate MRI (red flags, neurological findings) and 99215-level medical decision-making complexity. If no red flags documented, recommend downgrade to 99214 and defer MRI pending 4-6 weeks conservative therapy.",
+        },
+    },
+    "CLM-2024-004": {
+        "rules": {
+            "flags": [],
+            "risk_score": 0.0,
+            "pre_decision": "LOW_RISK",
+            "procedures_checked": ["99214", "93000"],
+            "diagnosis_prefix": "I10",
+        },
+        "guidelines": [
+            {
+                "guideline_id": "CG-006",
+                "category": "Cardiology - Hypertension",
+                "guideline": "For essential hypertension (I10) follow-up visits, ECG (93000) is appropriate for annual cardiovascular screening in patients over 65, or when starting/adjusting antihypertensive medications, or when symptoms suggest cardiac involvement. A moderate complexity visit (99214) is appropriate for hypertension management with medication adjustments.",
+                "source": "ACC/AHA Hypertension Clinical Practice Guidelines",
+                "relevance_score": 0.78,
+            },
+            {
+                "guideline_id": "CG-009",
+                "category": "Medical Necessity - General",
+                "guideline": "Medical necessity requires that services be: (1) appropriate for the symptoms and diagnosis, (2) not more costly than alternative services that are equally effective, (3) not experimental or investigational, and (4) furnished at the most appropriate level of service.",
+                "source": "CMS Medicare Benefit Policy Manual, Chapter 16",
+                "relevance_score": 0.34,
+            },
+            {
+                "guideline_id": "CG-003",
+                "category": "E&M Coding - Visit Complexity",
+                "guideline": "CPT 99215 (high complexity office visit) requires at least one of: high-complexity medical decision-making, or 40+ minutes of total time on the date of encounter.",
+                "source": "AMA CPT Guidelines / CMS E&M Documentation Standards",
+                "relevance_score": 0.27,
+            },
+        ],
+        "anomaly": {
+            "anomaly_score": 0.28,
+            "is_anomaly": False,
+            "raw_isolation_score": 0.087,
+            "feature_contributions": [
+                {"feature": "Age", "value": 70, "mean": 48.4, "deviation": 0.478, "direction": "above"},
+                {"feature": "Billed Amount", "value": 420.0, "mean": 370.0, "deviation": 0.075, "direction": "above"},
+                {"feature": "Procedure Count", "value": 2, "mean": 1.6, "deviation": 0.083, "direction": "above"},
+                {"feature": "Emergency Visit", "value": 0, "mean": 0.2, "deviation": 0.158, "direction": "below"},
+                {"feature": "Diagnosis Complexity", "value": 1, "mean": 1.6, "deviation": 0.108, "direction": "below"},
+            ],
+            "interpretation": {
+                "level": "Normal",
+                "description": "This claim falls within typical billing patterns for cardiology follow-up visits.",
+            },
+        },
+        "llm": {
+            "steps": [
+                {
+                    "step_number": 1,
+                    "title": "Clinical Context Analysis",
+                    "reasoning": "A 70-year-old female with essential hypertension (I10) presenting for a follow-up visit at a Cardiology practice. Hypertension is the leading cardiovascular risk factor in elderly patients, and routine monitoring with ECG is standard of care for patients over 65.",
+                    "findings": "Routine cardiology follow-up for hypertension in elderly female patient. Clinically appropriate presentation.",
+                },
+                {
+                    "step_number": 2,
+                    "title": "Procedure-Diagnosis Alignment",
+                    "reasoning": "CPT 99214 (moderate complexity visit) is appropriate for hypertension management requiring medication review and adjustment. CPT 93000 (ECG) is appropriate for cardiovascular screening in a 70-year-old hypertensive patient per ACC/AHA guidelines.",
+                    "findings": "Both procedure codes are well-aligned with the diagnosis and patient demographics. No mismatches detected.",
+                },
+                {
+                    "step_number": 3,
+                    "title": "Billing Pattern Analysis",
+                    "reasoning": "Total billed amount of $420 for a moderate complexity visit ($250-350) plus ECG ($100-200) is within expected range. The combined billing is consistent with typical cardiology follow-up encounters.",
+                    "findings": "Billing amount is within normal parameters for this combination of services in a cardiology setting.",
+                },
+                {
+                    "step_number": 4,
+                    "title": "Medical Necessity Assessment",
+                    "reasoning": "Per ACC/AHA guidelines, annual ECG is recommended for patients over 65 with hypertension for cardiac rhythm monitoring and detection of left ventricular hypertrophy. The moderate complexity visit is appropriate for ongoing medication management.",
+                    "findings": "Both services meet medical necessity criteria. ECG is guideline-supported for cardiovascular screening in this patient population.",
+                },
+                {
+                    "step_number": 5,
+                    "title": "Final Decision",
+                    "reasoning": "All analysis layers confirm this is a legitimate, appropriately coded cardiology follow-up visit. The patient demographics, diagnosis, procedures, and billing are all consistent with standard of care for elderly hypertension management.",
+                    "findings": "Claim is appropriate for approval. Standard cardiology follow-up with guideline-supported screening.",
+                },
+            ],
+            "decision": "APPROVE",
+            "confidence_score": 0.94,
+            "risk_factors": [],
+            "recommendation": "Approve claim. Routine hypertension follow-up with age-appropriate ECG screening. All procedures are guideline-concordant and billing is within expected range for cardiology services.",
+        },
+    },
     "CLM-2024-005": {
         "rules": {
             "flags": [

@@ -229,11 +229,16 @@ with st.sidebar:
     Chain-of-thought + audit narratives
 
     ---
+    ### Pattern Analytics
+    - K-Means Clustering (risk profiles)
+    - Time-Series Anomaly Detection
+
+    ---
     ### Technologies
     - AWS Bedrock (Claude)
     - AWS Titan Embeddings
     - scikit-learn
-    - Streamlit
+    - Streamlit | Plotly
     - Python
     """
     )
@@ -336,6 +341,7 @@ with tab2:
     st.markdown("Analyze all sample claims simultaneously and view aggregate statistics.")
 
     from batch_processor import process_batch, get_batch_summary
+    from pattern_analytics import cluster_claims, detect_time_series_anomalies
     import plotly.express as px
     import plotly.graph_objects as go
 
@@ -384,7 +390,82 @@ with tab2:
             fig.update_layout(height=350)
             st.plotly_chart(fig, use_container_width=True)
 
+        # --- K-Means Clustering ---
+        st.markdown("---")
+        st.subheader("K-Means Clustering: Risk Profiles")
+        st.caption("Unsupervised clustering groups claims into risk categories based on billing features")
+
+        cluster_df = cluster_claims(SAMPLE_CLAIMS)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            fig = px.scatter(
+                cluster_df, x="Billed Amount", y="Age",
+                color="Cluster", size="Procedures",
+                hover_data=["Claim ID"],
+                title="Claims Clustered by Risk Profile",
+                color_discrete_map={"Low Risk": "#28a745", "Moderate Risk": "#ffc107", "High Risk": "#dc3545"},
+            )
+            fig.update_layout(height=350)
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            cluster_counts = cluster_df["Cluster"].value_counts().reset_index()
+            cluster_counts.columns = ["Cluster", "Count"]
+            fig = px.pie(
+                cluster_counts, values="Count", names="Cluster",
+                title="Cluster Distribution",
+                color="Cluster",
+                color_discrete_map={"Low Risk": "#28a745", "Moderate Risk": "#ffc107", "High Risk": "#dc3545"},
+            )
+            fig.update_layout(height=350)
+            st.plotly_chart(fig, use_container_width=True)
+
+        # --- Time-Series Anomaly Detection ---
+        st.markdown("---")
+        st.subheader("Time-Series Anomaly Detection")
+        st.caption("Rolling Z-score method detects billing volume spikes that may indicate fraud onset or system abuse")
+
+        ts_df = detect_time_series_anomalies()
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=ts_df["day"], y=ts_df["count"],
+            mode="lines+markers", name="Daily Claims",
+            line=dict(color="#667eea"),
+        ))
+        fig.add_trace(go.Scatter(
+            x=ts_df["day"], y=ts_df["rolling_mean"],
+            mode="lines", name="Rolling Average",
+            line=dict(color="#999", dash="dash"),
+        ))
+
+        anomaly_days = ts_df[ts_df["combined_anomaly"]]
+        fig.add_trace(go.Scatter(
+            x=anomaly_days["day"], y=anomaly_days["count"],
+            mode="markers", name="Anomaly Detected",
+            marker=dict(color="red", size=14, symbol="x"),
+        ))
+        fig.update_layout(
+            title="Daily Claims Volume with Anomaly Detection (30-Day Window)",
+            xaxis_title="Day", yaxis_title="Claims Count",
+            height=350,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            anomaly_count = len(anomaly_days)
+            st.metric("Anomalous Days Detected", anomaly_count,
+                      delta=f"{anomaly_count/30:.0%} of period")
+        with col2:
+            if len(anomaly_days) > 0:
+                peak_day = anomaly_days.loc[anomaly_days["count"].idxmax()]
+                st.metric("Peak Anomaly", f"Day {int(peak_day['day'])}",
+                          delta=f"{int(peak_day['count'])} claims ({peak_day['count']/ts_df['count'].mean():.1f}x avg)")
+
         # Results table
+        st.markdown("---")
         st.markdown("### Detailed Results")
         styled_df = df.style.background_gradient(
             subset=["Rules Risk", "Anomaly Score"],
@@ -462,6 +543,17 @@ with tab4:
     | 2. RAG Retrieval | AWS Titan Embeddings | Vector similarity search over clinical guidelines |
     | 3. Anomaly Detection | scikit-learn (Isolation Forest) | Unsupervised statistical outlier detection |
     | 4. Agentic GenAI | AWS Bedrock (Claude) | Chain-of-thought reasoning with RAG context |
+
+    #### Topic Coverage (Topic 2 Keywords)
+    | Keyword | Implementation |
+    |---------|---------------|
+    | Chain Reasoning | 5-step chain-of-thought clinical analysis |
+    | Agentic GenAI | Autonomous goal-directed LLM agent |
+    | Classification | Approve / Flag for Review / Deny decisions |
+    | Prediction & Inference | Confidence scoring + risk estimation |
+    | Clustering | K-Means risk profile grouping |
+    | Time-Series Anomaly | Rolling Z-score billing volume detection |
+    | Anomaly Detection | Isolation Forest unsupervised outlier detection |
 
     #### Key Capabilities
     - **Autonomous Decision-Making**: The agent independently reasons through 5 analytical steps
